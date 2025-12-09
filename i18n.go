@@ -1,14 +1,16 @@
 package i18n
 
-import "github.com/VineLink-Lab/i18n/pkg/i18n"
+import (
+	"github.com/VineLink-Lab/i18n/internal/translator"
+)
 
-type I18n = i18n.I18n
-type Option = i18n.Option
-type M = i18n.M
+type Translator = translator.Translator
+type Option = translator.Option
+type M = translator.M
 
-var NewI18n = i18n.NewI18n
-var NewI18nFromFS = i18n.NewI18nFromFS
-var WithLanguage = i18n.WithLanguage
-var WithBundle = i18n.WithBundle
-var WithParams = i18n.WithParams
-var WithCount = i18n.WithCount
+var NewTranslator = translator.NewTranslator
+var NewTranslatorFromFS = translator.NewTranslatorFromFS
+var WithLanguage = translator.WithLanguage
+var WithBundle = translator.WithBundle
+var WithParams = translator.WithParams
+var WithCount = translator.WithCount

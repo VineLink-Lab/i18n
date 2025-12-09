@@ -51,7 +51,7 @@ import (
 
 ```go
 // Load translations from a directory (example/message)
-translator, err := i18n.NewI18n("example/message", language.English)
+translator, err := i18n.NewTranslator("example/message", language.English)
 if err != nil {
     panic(err)
 }
