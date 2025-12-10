@@ -3,16 +3,15 @@ package i18n
 import (
 	"log/slog"
 
-	"github.com/VineLink-Lab/i18n/internal/generate"
-
+	"github.com/VineLink-Lab/i18n/internal/web"
 	"github.com/spf13/cobra"
 )
 
-var generateCmd = cobra.Command{
-	Use:   "generate",
-	Short: "Generate go code from input Directory",
+var webCmd = cobra.Command{
+	Use:   "web",
+	Short: "Start web server for i18n management",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := generate.Generate(directory)
+		err := web.Web(directory, port)
 		if err != nil {
 			slog.Error("code generation failed", slog.String("error", err.Error()))
 			return err

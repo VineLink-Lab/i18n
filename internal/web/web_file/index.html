@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>i18n Translation Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary-color: #8b5cf6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--text-primary);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .controls {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: var(--card-bg);
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .stat-card.bundles {
+            border-left-color: var(--primary-color);
+        }
+
+        .stat-card.languages {
+            border-left-color: var(--success-color);
+        }
+
+        .stat-card.keys {
+            border-left-color: var(--warning-color);
+        }
+
+        .stat-card h3 {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 3px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tbody tr:hover {
+            background-color: var(--bg-color);
+        }
+
+        td {
+            padding: 1rem;
+            vertical-align: top;
+        }
+
+        .key-cell {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+            width: 20%;
+            max-width: 300px;
+            word-break: break-word;
+        }
+
+        .description-cell {
+            width: 20%;
+        }
+
+        .translation-cell {
+            color: var(--text-primary);
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .editable-content {
+            cursor: pointer;
+            padding: 0;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .editable-content:hover {
+            background-color: var(--bg-color);
+            padding: 0.25rem;
+            margin: -0.25rem;
+        }
+
+        .edit-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 2px solid var(--primary-color);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .edit-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .description-cell {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-style: italic;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+        }
+
+        .badge-primary {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1rem;
+            opacity: 0.5;
+        }
+
+        .search-highlight {
+            background: rgba(245, 158, 11, 0.3);
+            padding: 0.125rem 0.25rem;
+            border-radius: 3px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--card-bg);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            display: flex;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--success-color);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger-color);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-start;
+            justify-content: flex-start;
+            width: 120px;
+            min-width: 120px;
+        }
+
+        .actions-cell .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .control-group {
+                width: 100%;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 i18n Translation Manager</h1>
+            <p>Manage and view all translation resources - Real-time editing</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="bundleSelect">Select Bundle</label>
+                <select id="bundleSelect">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="searchInput">Search</label>
+                <input type="text" id="searchInput" placeholder="Search translations...">
+            </div>
+            <div class="control-group" style="flex: 0 0 auto;">
+                <label>&nbsp;</label>
+                <button class="btn btn-primary" onclick="openAddModal()">
+                    ➕ Add Translation
+                </button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card bundles">
+                <h3>Bundles</h3>
+                <div class="value" id="bundleCount">-</div>
+            </div>
+            <div class="stat-card languages">
+                <h3>Languages</h3>
+                <div class="value" id="languageCount">-</div>
+            </div>
+            <div class="stat-card keys">
+                <h3>Translation Keys</h3>
+                <div class="value" id="keyCount">-</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Loading...</p>
+            </div>
+            <div id="tableContainer" style="display: none;">
+                <div class="table-container">
+                    <table id="translationTable">
+                        <thead>
+                            <tr id="tableHeader">
+                                <th>Key</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <p>No translation data found</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Translation Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Translation</h2>
+                <button class="close-btn" onclick="closeAddModal()">&times;</button>
+            </div>
+            <form id="addForm" onsubmit="handleAddSubmit(event)">
+                <div class="form-group">
+                    <label for="newKey">Key *</label>
+                    <input type="text" id="newKey" required placeholder="e.g. welcome_message">
+                </div>
+                <div class="form-group">
+                    <label for="newDescription">Description</label>
+                    <input type="text" id="newDescription" placeholder="Describe the purpose of this translation">
+                </div>
+                <div id="translationInputs"></div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-small" onclick="closeAddModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-small">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        let allBundles = [];
+        let allLanguages = [];
+        let currentData = null;
+        let currentBundle = '.';
+
+        // Initialize
+        async function init() {
+            await loadBundles();
+            await loadLanguages();
+            await loadBundleContent(currentBundle);
+        }
+
+        // Load all bundles
+        async function loadBundles() {
+            try {
+                const response = await fetch('/api/bundles');
+                allBundles = await response.json();
+
+                const select = document.getElementById('bundleSelect');
+                select.innerHTML = allBundles.map(bundle =>
+                    `<option value="${bundle}" ${bundle === currentBundle ? 'selected' : ''}>${bundle}</option>`
+                ).join('');
+
+                document.getElementById('bundleCount').textContent = allBundles.length;
+
+                select.addEventListener('change', async (e) => {
+                    currentBundle = e.target.value;
+                    await loadBundleContent(currentBundle);
+                });
+            } catch (error) {
+                console.error('Failed to load bundles:', error);
+                showToast('Failed to load bundles', 'error');
+            }
+        }
+
+        // Load all supported languages
+        async function loadLanguages() {
+            try {
+                const response = await fetch('/api/languages');
+                allLanguages = await response.json();
+                document.getElementById('languageCount').textContent = allLanguages.length;
+            } catch (error) {
+                console.error('Failed to load languages:', error);
+                showToast('Failed to load languages', 'error');
+            }
+        }
+
+        // Load bundle content
+        async function loadBundleContent(bundle) {
+            showLoading();
+            try {
+                const response = await fetch(`/api/bundles/content?bundle=${encodeURIComponent(bundle)}`);
+                currentData = await response.json();
+                renderTable();
+            } catch (error) {
+                console.error('Failed to load content:', error);
+                showToast('Failed to load content', 'error');
+                showEmpty();
+            }
+        }
+
+        // Render table
+        function renderTable() {
+            if (!currentData || Object.keys(currentData).length === 0) {
+                showEmpty();
+                return;
+            }
+
+            const languages = Object.keys(currentData);
+            const firstLang = languages[0];
+            const keys = Object.keys(currentData[firstLang] || {});
+
+            if (keys.length === 0) {
+                showEmpty();
+                return;
+            }
+
+            // Update stats
+            document.getElementById('keyCount').textContent = keys.length;
+
+            // Render table header
+            const tableHeader = document.getElementById('tableHeader');
+            while (tableHeader.children.length > 2) {
+                tableHeader.removeChild(tableHeader.lastChild);
+            }
+            languages.forEach(lang => {
+                const th = document.createElement('th');
+                th.innerHTML = `<span class="badge badge-success">${lang}</span>`;
+                tableHeader.appendChild(th);
+            });
+            // Add actions column
+            const actionTh = document.createElement('th');
+            actionTh.textContent = 'Actions';
+            tableHeader.appendChild(actionTh);
+
+            // Render table body
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            keys.forEach(key => {
+                if (searchTerm) {
+                    const matches = key.toLowerCase().includes(searchTerm) ||
+                        languages.some(lang => {
+                            const msg = currentData[lang][key];
+                            return msg && (
+                                (msg.content && msg.content.toLowerCase().includes(searchTerm)) ||
+                                (msg.description && msg.description.toLowerCase().includes(searchTerm))
+                            );
+                        });
+                    if (!matches) return;
+                }
+
+                const tr = document.createElement('tr');
+
+                // Key column
+                const keyCell = document.createElement('td');
+                keyCell.className = 'key-cell';
+                keyCell.textContent = key;
+                tr.appendChild(keyCell);
+
+                // Description column
+                const descCell = document.createElement('td');
+                descCell.className = 'description-cell';
+                const firstMsg = currentData[firstLang][key];
+                const description = firstMsg?.description || '';
+
+                const descContent = document.createElement('div');
+                descContent.className = 'editable-content';
+                descContent.textContent = description || '(Click to add description)';
+                // Don't pass values, read from currentData in real-time
+                descContent.onclick = () => editDescription(key, descContent);
+                descCell.appendChild(descContent);
+                tr.appendChild(descCell);
+
+                // Language translation columns
+                languages.forEach(lang => {
+                    const td = document.createElement('td');
+                    td.className = 'translation-cell';
+
+                    const message = currentData[lang][key];
+                    const content = message?.content || '';
+
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = 'editable-content';
+                    contentDiv.textContent = content || '-';
+                    // Don't pass values, read from currentData in real-time
+                    contentDiv.onclick = () => editTranslation(key, lang, contentDiv);
+
+                    td.appendChild(contentDiv);
+                    tr.appendChild(td);
+                });
+
+                // Actions column
+                const actionCell = document.createElement('td');
+                actionCell.className = 'actions-cell';
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-danger btn-small';
+                deleteBtn.textContent = '🗑️ Delete';
+                deleteBtn.onclick = () => deleteMessage(key);
+
+                actionCell.appendChild(deleteBtn);
+                tr.appendChild(actionCell);
+
+                tbody.appendChild(tr);
+            });
+
+            showTable();
+        }
+
+        // Auto-resize textarea based on content
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        // Edit translation content
+        function editTranslation(key, lang, element) {
+            // Read latest value from currentData in real-time
+            const message = currentData[lang]?.[key] || {};
+            const currentContent = message.content || '';
+            const description = message.description || '';
+
+            const input = document.createElement('textarea');
+            input.className = 'edit-input';
+            input.value = currentContent;
+            input.style.minHeight = '60px';
+            input.style.resize = 'vertical';
+
+            // Auto-resize on input
+            input.oninput = () => autoResizeTextarea(input);
+
+            const saveEdit = async () => {
+                const newContent = input.value;
+                if (newContent !== currentContent) {
+                    await updateMessage(key, lang, newContent, description);
+                }
+                element.textContent = newContent || '-';
+                element.style.display = 'block';
+                input.remove();
+            };
+
+            input.onblur = saveEdit;
+            input.onkeydown = (e) => {
+                if (e.key === 'Escape') {
+                    element.style.display = 'block';
+                    input.remove();
+                } else if (e.key === 'Enter' && e.ctrlKey) {
+                    saveEdit();
+                }
+            };
+
+            element.style.display = 'none';
+            element.parentNode.insertBefore(input, element);
+            input.focus();
+
+            // Initial resize to fit content
+            autoResizeTextarea(input);
+        }
+
+        // Edit description
+        function editDescription(key, element) {
+            // Read latest value from currentData in real-time
+            const languages = Object.keys(currentData);
+            const firstLang = languages[0];
+            const currentDescription = currentData[firstLang]?.[key]?.description || '';
+
+            const input = document.createElement('input');
+            input.className = 'edit-input';
+            input.value = currentDescription;
+
+            const saveEdit = async () => {
+                const newDescription = input.value;
+                if (newDescription !== currentDescription) {
+                    // Update description for all languages
+                    for (const lang of languages) {
+                        const message = currentData[lang][key];
+                        if (message) {
+                            await updateMessage(key, lang, message.content, newDescription);
+                        }
+                    }
+                }
+                element.textContent = newDescription || '(Click to add description)';
+                element.style.display = 'block';
+                input.remove();
+            };
+
+            input.onblur = saveEdit;
+            input.onkeydown = (e) => {
+                if (e.key === 'Escape') {
+                    element.style.display = 'block';
+                    input.remove();
+                } else if (e.key === 'Enter') {
+                    saveEdit();
+                }
+            };
+
+            element.style.display = 'none';
+            element.parentNode.insertBefore(input, element);
+            input.focus();
+        }
+
+        // Update message
+        async function updateMessage(key, lang, content, description) {
+            try {
+                const response = await fetch('/api/message/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        bundle: currentBundle,
+                        key: key,
+                        lang: lang,
+                        content: content,
+                        description: description
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Update failed');
+                }
+
+                // Update local data
+                if (!currentData[lang]) {
+                    currentData[lang] = {};
+                }
+                currentData[lang][key] = {
+                    content: content,
+                    description: description
+                };
+
+                showToast('✅ Saved successfully', 'success');
+            } catch (error) {
+                console.error('Update failed:', error);
+                showToast('❌ Save failed', 'error');
+            }
+        }
+
+        // Delete message
+        async function deleteMessage(key) {
+            if (!confirm(`Are you sure you want to delete "${key}"? This will remove all language translations.`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/message/delete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        bundle: currentBundle,
+                        key: key
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Delete failed');
+                }
+
+                // Remove from local data
+                Object.keys(currentData).forEach(lang => {
+                    delete currentData[lang][key];
+                });
+
+                showToast('✅ Deleted successfully', 'success');
+                renderTable();
+            } catch (error) {
+                console.error('Delete failed:', error);
+                showToast('❌ Delete failed', 'error');
+            }
+        }
+
+        // Open add modal
+        function openAddModal() {
+            const modal = document.getElementById('addModal');
+            const inputsContainer = document.getElementById('translationInputs');
+
+            // Generate input fields for each language
+            inputsContainer.innerHTML = allLanguages.map(lang => `
+                <div class="form-group">
+                    <label for="trans_${lang}">${lang} Translation *</label>
+                    <textarea id="trans_${lang}" required rows="3" placeholder="Enter ${lang} translation"></textarea>
+                </div>
+            `).join('');
+
+            modal.classList.add('show');
+        }
+
+        // Close add modal
+        function closeAddModal() {
+            const modal = document.getElementById('addModal');
+            modal.classList.remove('show');
+            document.getElementById('addForm').reset();
+        }
+
+        // Handle add form submit
+        async function handleAddSubmit(event) {
+            event.preventDefault();
+
+            const key = document.getElementById('newKey').value;
+            const description = document.getElementById('newDescription').value;
+
+            const translations = {};
+            allLanguages.forEach(lang => {
+                const content = document.getElementById(`trans_${lang}`).value;
+                if (content) {
+                    translations[lang] = content;
+                }
+            });
+
+            try {
+                const response = await fetch('/api/message/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        bundle: currentBundle,
+                        key: key,
+                        translations: translations,
+                        description: description
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Add failed');
+                }
+
+                showToast('✅ Added successfully', 'success');
+                closeAddModal();
+                await loadBundleContent(currentBundle);
+            } catch (error) {
+                console.error('Add failed:', error);
+                showToast('❌ Add failed', 'error');
+            }
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', () => {
+            renderTable();
+        });
+
+        // Toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+
+            toastMessage.textContent = message;
+            toast.className = `toast toast-${type} show`;
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Show/hide states
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function showTable() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'block';
+            document.getElementById('emptyState').style.display = 'none';
+        }
+
+        function showEmpty() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('tableContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        // Start application
+        init();
+    </script>
+</body>
+</html>
