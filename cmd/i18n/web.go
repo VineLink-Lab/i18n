@@ -1,4 +1,4 @@
-package i18n
+package main
 
 import (
 	"log/slog"
