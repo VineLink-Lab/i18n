@@ -18,7 +18,7 @@ func NewTranslator(directory string, defaultLanguage ...language.Tag) (*Translat
 	if err != nil {
 		return nil, err
 	}
-	return newTranslator(p, defaultLanguage...), nil
+	return newTranslator(p, defaultLanguage...)
 }
 
 func NewTranslatorFromFS(directory fs.FS, defaultLanguage ...language.Tag) (*Translator, error) {
@@ -34,13 +34,13 @@ func NewTranslatorFromFS(directory fs.FS, defaultLanguage ...language.Tag) (*Tra
 	if err != nil {
 		return nil, err
 	}
-	return newTranslator(p, defaultLanguage...), nil
+	return newTranslator(p, defaultLanguage...)
 }
 
-func newTranslator(p *parser.Parser, defaultLanguage ...language.Tag) *Translator {
+func newTranslator(p *parser.Parser, defaultLanguage ...language.Tag) (*Translator, error) {
 	supportedLanguages := p.GetSupportedLanguages()
 	if len(supportedLanguages) == 0 {
-		supportedLanguages = []language.Tag{language.English}
+		return nil, ErrNoSupportedLanguages
 	}
 	t := &Translator{
 		parser:        p,
@@ -50,7 +50,8 @@ func newTranslator(p *parser.Parser, defaultLanguage ...language.Tag) *Translato
 	if len(defaultLanguage) > 0 {
 		t.defaultLang = defaultLanguage[0]
 	}
-	return t
+	p.SetDefaultLanguage(t.defaultLang)
+	return t, nil
 }
 
 func (t *Translator) UseLanguageCode(langCode string) *Translator {

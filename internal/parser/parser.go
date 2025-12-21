@@ -17,6 +17,7 @@ type Parser struct {
 	directory     fs.FS
 	bundleDir     map[string]string
 	languages     utils.Set[language.Tag]
+	defaultLang   language.Tag
 
 	contents map[string]BundleContent
 
@@ -47,8 +48,24 @@ func NewParserFromFS(directory fs.FS) (*Parser, error) {
 	return p, nil
 }
 
+func (p *Parser) SetDefaultLanguage(lang language.Tag) {
+	p.defaultLang = lang
+}
+
 func (p *Parser) GetSupportedLanguages() []language.Tag {
-	return p.languages.ToSlice()
+	languages := p.languages.ToSlice()
+	if p.defaultLang != language.Und {
+		// Move default language to the front
+		for i, lang := range languages {
+			if lang == p.defaultLang {
+				if i != 0 {
+					languages[0], languages[i] = languages[i], languages[0]
+				}
+				break
+			}
+		}
+	}
+	return languages
 }
 
 func (p *Parser) GetDirectoryPath() string {
